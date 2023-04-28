@@ -1,9 +1,17 @@
 import pygame
 import data
+import modules
+import random
 pygame.init()
 
 WIDTH, HEIGHT = data.WINDOW['WIDTH'], data.WINDOW['HEIGHT']
 FPS = data.WINDOW['FPS']
+
+def spawn_duck(ducks):
+    if random.random() <= 0.5:
+        ducks.append(modules.Duck(random.randint(0, data.WINDOW['WIDTH']-70), 510, data.duck_anim[:3]+data.duck_anim[-2:], 3, -1))
+    else:
+        ducks.append(modules.Duck(random.randint(0, data.WINDOW['WIDTH']-70), 510, data.duck_anim[3:], 4, -0.5))
 
 clock = pygame.time.Clock()
 
@@ -19,6 +27,9 @@ def run():
     y_anim = 500
     jump_anim = True
 
+    ducks = []
+
+
     while game:
         
         if menu_regim == 0:
@@ -29,24 +40,24 @@ def run():
             window.blit(data.background, (0, 0))
 
             if i_count_anim//14//4 >= 16:
-                if i_count_anim//14//4//10 <= 1:
+                if i_count_anim//14//40 <= 1:
                     window.blit(data.dogs_anim[4], (x_anim, y_anim-10))
                 else:
                     if jump_anim:
-                        if y_anim <= 420:
+                        if y_anim <= 400:
                             jump_anim = False
                         window.blit(data.dogs_anim[5], (x_anim, y_anim))
-                        y_anim -= 1
+                        y_anim -= 2
                     else:
                         if y_anim >= 500:
                             menu_regim = 2
                         window.blit(data.dogs_anim[6], (x_anim, y_anim))
                         window.blit(data.background, (0, 0))
-                        y_anim += 1
+                        y_anim += 2
                 #print(i_count_anim//14//4//10)
 
             else:
-                if i_count_anim//14//4 % 4 == 0:
+                if i_count_anim//14//8 % 4 == 0:
                     if index_anim == 3:
                         index_anim = 0
 
@@ -79,15 +90,33 @@ def run():
                     game = False
 
         elif menu_regim == 2:
+            #print(ducks)
             pygame.mouse.set_visible(False)
             window.fill((0, 0, 250))
+            if len(ducks) <= 0:
+                spawn_duck(ducks)
+            for duck in ducks:
+                duck.draw(window)
+                duck.move(ducks)
+
             window.blit(data.background, (0, 0))
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     game = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    if pygame.mouse.get_pressed()[0] and duck.RECT.collidepoint(pygame.mouse.get_pos()):
+                        duck.death()
 
-            window.blit(data.cross, (pygame.mouse.get_pos()[0]+data.cross.get_width()//2, pygame.mouse.get_pos()[1]+data.cross.get_height()//2))
+            window.blit(data.cross, (pygame.mouse.get_pos()[0]-data.cross.get_width()//2, pygame.mouse.get_pos()[1]-data.cross.get_height()//2))
+        
+        #x = 0
+        #for i in range(len(data.duck_anim[:3]+data.duck_anim[-2:])):
+        #    l = data.duck_anim[:3]+data.duck_anim[-2:]
+        #    #print(l)
+        #    window.blit(l[i], (x, 5))
+        #    x += l[i].get_width()+2
+
         pygame.display.flip()
         clock.tick(FPS)
 

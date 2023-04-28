@@ -7,21 +7,18 @@ WINDOW = {
     'FPS' : 60
 }
 
+def load_imgs(folder: str, name: str, count_imgs: int, format_img='png') -> list:
+    list = []
+    for i in range(count_imgs):
+        list.append(pygame.image.load(f'{img_path+folder}\\{name}{i}.{format_img}'))
+
+    return list
+
 path = os.path.abspath(__file__+'/..')
 img_path = path+'\\img\\'
 
-dogs = pygame.image.load(img_path+'dog.png')
 background = pygame.image.load(img_path+'background.png')
-
-dogs_anim = []
-x = 0
-y = 0
-for i in range(4):
-    dogs_anim.append(pygame.transform.scale(dogs.subsurface((x, y, 52, 42)), (104, 84)))
-    x += 53
-
-dogs_anim.append(pygame.transform.scale(dogs.subsurface((0, 43, 52, 47)), (104, 94)))
-dogs_anim.append(pygame.transform.scale(dogs.subsurface((53, 43, 34, 47)), (68, 94)))
-dogs_anim.append(pygame.transform.scale(dogs.subsurface((88, 43, 32, 47)), (64, 94)))
-
 cross = pygame.image.load(img_path+'cross.png')
+
+dogs_anim = load_imgs('dog', 'dog_anim', 11)
+duck_anim = load_imgs('duck', 'duck_anim', 8)
