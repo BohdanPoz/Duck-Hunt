@@ -36,9 +36,9 @@ class Duck():
                 self.RECT.size = (self.WIDTH, self.HEIGHT)
 
         else:
-            if self.IMG_DELAY // self.IMG_DELAY_MAX <= 3 and not self.FALL:
+            if self.IMG_DELAY // (self.IMG_DELAY_MAX//2) <= 3 and not self.FALL:
                 self.IMG_INDEX = 3
-            elif self.IMG_DELAY // self.IMG_DELAY_MAX >= 3 and not self.FALL:
+            elif self.IMG_DELAY // (self.IMG_DELAY_MAX//2) >= 3 and not self.FALL:
                 self.FALL = True
                 self.IMG_DELAY = 0
             else:

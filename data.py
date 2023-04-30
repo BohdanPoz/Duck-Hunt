@@ -22,3 +22,7 @@ cross = pygame.image.load(img_path+'cross.png')
 
 dogs_anim = load_imgs('dog', 'dog_anim', 11)
 duck_anim = load_imgs('duck', 'duck_anim', 8)
+
+ducks_count = [pygame.image.load(img_path+'duck\\white_duck.png'), pygame.image.load(img_path+'duck\\red_duck.png')]
+
+bullet_img = pygame.image.load(img_path+'bullet.png')
