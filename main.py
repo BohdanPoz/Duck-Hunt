@@ -19,6 +19,8 @@ window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Duck Hunt")
 
 FONT = pygame.font.SysFont('duckhunt.ttf', 28, True)
+FONT_SCORE = pygame.font.SysFont('duckhunt.ttf', 50, False)
+SHOT_TEXT = FONT.render('SHOT', False, (90, 90, 250))
 
 def run():
     game = True
@@ -26,18 +28,20 @@ def run():
     ROUND = 1
     DUCK_COUNT = 10
     BULLETS = 3
+    SCORE = 0
     shot_time = -1
     i_count_anim = 0
     index_anim = 0
     x_anim = 0
     y_anim = 500
     jump_anim = True
+    ducks_count = [0 for i in range(DUCK_COUNT)]
 
     ducks = []
     spawn_duck(ducks)
 
     while game:
-        
+        pygame.display.set_caption(f'Duck Hunt FPS: {round(clock.get_fps(), 2)}')
         if menu_regim == 0:
             pass
         elif menu_regim == 1:
@@ -99,12 +103,13 @@ def run():
             #print(ducks)
             pygame.mouse.set_visible(False)
             window.fill((0, 0, 250))
-            if len(ducks) <= 0:
-                spawn_duck(ducks)
-                DUCK_COUNT -= 1
             for duck in ducks:
-                duck.draw(window)
+                duck.draw(window, spawn_duck, ducks, ducks_count, DUCK_COUNT)
                 duck.move(ducks)
+                if duck.DEATH and duck.SPAWN:
+                    DUCK_COUNT -= 1
+                    duck.SPAWN = False
+                #    spawn_duck(ducks)
 
             window.blit(data.background, (0, 0))
 
@@ -141,17 +146,22 @@ def run():
 
         round_count = FONT.render(f'R={ROUND}', False, (90, 180, 20))
         window.blit(round_count, (55, 601))
-        x = 500-26
-        for i in range(DUCK_COUNT):
-            window.blit(data.ducks_count[0], (x, 645))
-            x-=26
-        for i in range(10-DUCK_COUNT):
-            window.blit(data.ducks_count[1], (x, 645))
-            x-=26
+        x = 500-260
+        for i in ducks_count:
+            window.blit(data.ducks_count[i], (x, 645))
+
+            x+=26
         x = 51
         for i in range(BULLETS):
             window.blit(data.bullet_img, (x, 635))
             x+=24
+        window.blit(SHOT_TEXT, (55, 664))
+        SCORE_STR = ''
+        for i in range(6-len(str(SCORE))): SCORE_STR += '0'
+        SCORE_STR += str(SCORE)
+        SCORE_SURF = FONT_SCORE.render(SCORE_STR, False, (255, 255, 255))
+        window.blit(SCORE_SURF, (555, 630))
+
         pygame.display.flip()
         clock.tick(FPS)
 
