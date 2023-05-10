@@ -60,7 +60,7 @@ class Duck():
             self.dog_anim(window, spawn_duck, ducks, ducks_count, duck_count)
 
     def move(self, ducks):
-        print(self.TOUCHS)
+        #print(self.TOUCHS)
         if not self.DEATH:
             if self.RECT.bottom < 350 and not self.DOG_ANIM:
                 self.FLY_UP = False
@@ -90,13 +90,21 @@ class Duck():
 
         if (self.RECT.bottom <= 0 or self.RECT.right <= 0 or self.RECT.left >= data.WINDOW['WIDTH']) and not self.DOG_ANIM:
             self.death('fly')
+            self.DOG_ANIM = True
+            self.Y = 500
 
     def death(self, death_type='kill'):
         self.DEATH = True
         self.FLY_UP = True
         self.IMG_DELAY = 0
         self.TYPE_DEATH = death_type
-        print(death_type)
+        if death_type == 'kill':
+            if self.TOUCHS < 2:
+                return 1000
+            elif self.TOUCHS >= 2 and self.TOUCHS <= 4:
+                return 750
+            elif self.TOUCHS > 4:
+                return 500
 
     def dog_anim(self, window, spawn_duck, ducks, ducks_count, duck_count):
         if self.TYPE_DEATH == 'kill':
@@ -105,28 +113,34 @@ class Duck():
                 self.Y = self.Y - 1
             else:
                 self.Y += 1
-                if self.Y >= 500:
-                    spawn_duck(ducks)
+                if self.Y >= 490:
+                    if duck_count >= 0:
+                        print(duck_count)
+                        spawn_duck(ducks)
                     ducks.remove(self)
 
-            if self.Y <= 430:
+            if self.Y <= 420:
                 self.FLY_UP = False
-            ducks_count[10-duck_count-1] = 1
+            if duck_count >= 0:
+                ducks_count[10-duck_count-1] = 1
         elif self.TYPE_DEATH == 'fly':
             window.blit(data.dogs_anim[-self.IMG_INDEX], (320, self.Y))
             if self.FLY_UP:
-                self.Y = self.Y - 1
+                self.Y = self.Y - 0.5
             else:
-                self.Y += 1
-                if self.Y >= 500:
-                    spawn_duck(ducks)
+                self.Y += 0.5
+                if self.Y >= 490:
+                    if duck_count >= 0:
+                        print(duck_count)
+                        spawn_duck(ducks)
                     ducks.remove(self)
 
-            if self.Y <= 430:
+            if self.Y <= 490-70:
                 self.FLY_UP = False
             if self.IMG_DELAY <= self.IMG_DELAY_MAX//2:
                 self.IMG_INDEX = 2
             elif self.IMG_DELAY >= self.IMG_DELAY_MAX//2:
                 self.IMG_INDEX = 1
+            self.IMG_DELAY += 1
             if self.IMG_DELAY > self.IMG_DELAY_MAX:
                 self.IMG_DELAY = 0

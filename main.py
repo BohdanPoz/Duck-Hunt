@@ -38,7 +38,6 @@ def run():
     ducks_count = [0 for i in range(DUCK_COUNT)]
 
     ducks = []
-    spawn_duck(ducks)
 
     while game:
         pygame.display.set_caption(f'Duck Hunt FPS: {round(clock.get_fps(), 2)}')
@@ -61,6 +60,8 @@ def run():
                     else:
                         if y_anim >= 500:
                             menu_regim = 2
+                            spawn_duck(ducks)
+                            ducks_count = [0 for i in range(DUCK_COUNT)]
                         window.blit(data.dogs_anim[6], (x_anim, y_anim))
                         window.blit(data.background, (0, 0))
                         y_anim += 2
@@ -88,16 +89,15 @@ def run():
 
             i_count_anim += 1
 
-            #print(i_count_anim//14//4 == 17)
-
-            #x = 0
-            #for i in range(7):
-            #    window.blit(data.dogs_anim[i], (x, 0))
-            #    x += 106
-
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     game = False
+                if event.type == pygame.KEYDOWN:
+                    print(1)
+                    if event.key == pygame.K_ESCAPE:
+                        menu_regim = 2
+                        spawn_duck(ducks)
+                        ducks_count = [0 for i in range(DUCK_COUNT)]
 
         elif menu_regim == 2:
             #print(ducks)
@@ -129,20 +129,25 @@ def run():
                     if pygame.mouse.get_pressed()[0] and BULLETS > 0:
                         for duck in ducks:
                             if duck.RECT.collidepoint(pygame.mouse.get_pos()):
-                                duck.death()
+                                change_score = duck.death()
+                                SCORE += change_score if type(change_score) == type(1) else 0
                         window.fill((0, 0, 0))
                         BULLETS -= 1
                         if shot_time < 0:
                             shot_time = time.time()
 
             window.blit(data.cross, (pygame.mouse.get_pos()[0]-data.cross.get_width()//2, pygame.mouse.get_pos()[1]-data.cross.get_height()//2))
-        
-        #x = 0
-        #for i in range(len(data.duck_anim[:3]+data.duck_anim[-2:])):
-        #    l = data.duck_anim[:3]+data.duck_anim[-2:]
-        #    #print(l)
-        #    window.blit(l[i], (x, 5))
-        #    x += l[i].get_width()+2
+
+            if DUCK_COUNT <= 0 and ducks == []:
+                ROUND += 1
+                DUCK_COUNT = 10
+                i_count_anim = 0
+                index_anim = 0
+                x_anim = 0
+                y_anim = 500
+                jump_anim = True
+                ducks_count.sort(reverse=True)
+                menu_regim = 1
 
         round_count = FONT.render(f'R={ROUND}', False, (90, 180, 20))
         window.blit(round_count, (55, 601))
