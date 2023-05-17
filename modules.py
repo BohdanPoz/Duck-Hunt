@@ -1,6 +1,12 @@
 import pygame
 import data
+import time
 pygame.init()
+
+TOP_RECORD = 0
+
+with open('record.txt') as record:
+    TOP_RECORD = record.read()
 
 class Duck():
     def __init__(self, x, y, imgs, stepx, stepy, img_delay_max=30):
@@ -59,8 +65,7 @@ class Duck():
         else:
             self.dog_anim(window, spawn_duck, ducks, ducks_count, duck_count)
 
-    def move(self, ducks):
-        #print(self.TOUCHS)
+    def move(self, ROUND):
         if not self.DEATH:
             if self.RECT.bottom < 350 and not self.DOG_ANIM:
                 self.FLY_UP = False
@@ -74,9 +79,13 @@ class Duck():
                 self.TOUCHS += 1
                 for i, img in enumerate(self.IMGS):
                     self.IMGS[i] = pygame.transform.flip(img, True, False)
-
-            self.X += self.STEPX
-            self.Y += self.STEPY
+            if ROUND > 1:
+                stepx, stepy = self.STEPX, self.STEPY
+            else:
+                stepx, stepy = self.STEPX, self.STEPY
+            
+            self.X += stepx
+            self.Y += stepy
         else:
             if self.FALL and not self.DOG_ANIM:
                 self.Y += 3
@@ -115,13 +124,12 @@ class Duck():
                 self.Y += 1
                 if self.Y >= 490:
                     if duck_count >= 0:
-                        print(duck_count)
                         spawn_duck(ducks)
                     ducks.remove(self)
 
             if self.Y <= 420:
                 self.FLY_UP = False
-            if duck_count >= 0:
+            if duck_count >= 1:
                 ducks_count[10-duck_count-1] = 1
         elif self.TYPE_DEATH == 'fly':
             window.blit(data.dogs_anim[-self.IMG_INDEX], (320, self.Y))
@@ -130,12 +138,11 @@ class Duck():
             else:
                 self.Y += 0.5
                 if self.Y >= 490:
-                    if duck_count >= 0:
-                        print(duck_count)
+                    if duck_count >= 1:
                         spawn_duck(ducks)
                     ducks.remove(self)
 
-            if self.Y <= 490-70:
+            if self.Y <= 420:
                 self.FLY_UP = False
             if self.IMG_DELAY <= self.IMG_DELAY_MAX//2:
                 self.IMG_INDEX = 2
@@ -144,3 +151,75 @@ class Duck():
             self.IMG_DELAY += 1
             if self.IMG_DELAY > self.IMG_DELAY_MAX:
                 self.IMG_DELAY = 0
+
+class TEXT_SCORE:
+    def __init__(self, x, y, score, font, scores):
+        scores.append(self)
+        self.X, self.Y = x, y
+
+        self.SCORES = scores
+        self.TEXT_SCORE = font.render(str(score), False, (255, 255, 255))
+        self.TIME = time.time()
+
+    def draw(self, window):
+        if abs(time.time() - self.TIME) <= 1.5:
+            window.blit(self.TEXT_SCORE, (self.X, self.Y))
+        else:
+            self.SCORES
+
+class Menu:
+    def __init__(self, window, color_background, img_title, color_buttons, font_button, size_fontb):
+        self.WINDOW = window
+
+        self.FONT_BUTTON = pygame.font.SysFont(font_button, size_fontb, True)
+        self.BUTTONS = []
+
+        self.COLOR_BACKGOUND = color_background
+        self.TITLE = pygame.image.load(data.img_path+img_title)
+        self.COLOR_BUTTONS = color_buttons
+
+        self.CURENT_BUTTON = None
+    
+    def add_button(self, text, func=None):
+        self.BUTTONS.append((self.FONT_BUTTON.render(text, False, self.COLOR_BUTTONS), self.FONT_BUTTON.render(text, False, self.COLOR_BACKGOUND, self.COLOR_BUTTONS), func))
+        with open('record.txt', 'w') as f:
+            f.write(str(self.BUTTONS))
+
+    def draw(self):
+        self.WINDOW.fill(self.COLOR_BACKGOUND)
+        self.WINDOW.blit(self.TITLE, (data.WINDOW['WIDTH']//2-self.TITLE.get_width()//2, 20))
+
+        y = 100 + self.TITLE.get_height()
+
+        for i, button in enumerate(self.BUTTONS):
+            if self.CURENT_BUTTON != i:
+                self.WINDOW.blit(button[0], (data.WINDOW['WIDTH']//2-button[1].get_width()//2, y))
+            else:
+                self.WINDOW.blit(button[1], (data.WINDOW['WIDTH']//2-button[1].get_width()//2, y))
+            y += button[1].get_height() + 10
+
+    def event_menu(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return True
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:
+                    if self.CURENT_BUTTON != None:
+                        self.CURENT_BUTTON += 1
+                    elif self.CURENT_BUTTON == None:
+                        self.CURENT_BUTTON = 0
+                elif event.key == pygame.K_UP:
+                    if self.CURENT_BUTTON != None:
+                        self.CURENT_BUTTON -= 1
+                    elif self.CURENT_BUTTON == None:
+                        self.CURENT_BUTTON = len(self.BUTTONS)-1
+
+                if self.CURENT_BUTTON != None:
+                    if self.CURENT_BUTTON <= -1:
+                        self.CURENT_BUTTON = len(self.BUTTONS)-1
+                    elif self.CURENT_BUTTON >= len(self.BUTTONS):
+                        self.CURENT_BUTTON = 0
+
+                if event.key == pygame.K_RETURN and self.CURENT_BUTTON != None:
+                    if self.BUTTONS[self.CURENT_BUTTON][-1] != None:
+                        self.BUTTONS[self.CURENT_BUTTON][-1]()

@@ -18,17 +18,27 @@ clock = pygame.time.Clock()
 window = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Duck Hunt")
 
+def func_duck():
+    global menu_regim
+    menu_regim = 1
+
 FONT = pygame.font.SysFont('duckhunt.ttf', 28, True)
 FONT_SCORE = pygame.font.SysFont('duckhunt.ttf', 50, False)
 SHOT_TEXT = FONT.render('SHOT', False, (90, 90, 250))
 
+main_menu = modules.Menu(window, (15, 15, 30), 'title.png', (200, 200, 0), 'duckhunt.ttf', 50)
+main_menu.add_button('Game A    1 duck  ', func_duck)
+main_menu.add_button('Game B    2 ducks')
+
 def run():
     game = True
-    menu_regim = 1
-    ROUND = 1
+    global menu_regim
+    menu_regim = 0
+    ROUND = 10
     DUCK_COUNT = 10
     BULLETS = 3
     SCORE = 0
+    SCORES = []
     shot_time = -1
     i_count_anim = 0
     index_anim = 0
@@ -42,7 +52,9 @@ def run():
     while game:
         pygame.display.set_caption(f'Duck Hunt FPS: {round(clock.get_fps(), 2)}')
         if menu_regim == 0:
-            pass
+            main_menu.draw()
+            if main_menu.event_menu() != None: game=False
+            
         elif menu_regim == 1:
             pygame.mouse.set_visible(False)
             window.fill((0, 0, 250))
@@ -93,7 +105,6 @@ def run():
                 if event.type == pygame.QUIT:
                     game = False
                 if event.type == pygame.KEYDOWN:
-                    print(1)
                     if event.key == pygame.K_ESCAPE:
                         menu_regim = 2
                         spawn_duck(ducks)
@@ -105,7 +116,7 @@ def run():
             window.fill((0, 0, 250))
             for duck in ducks:
                 duck.draw(window, spawn_duck, ducks, ducks_count, DUCK_COUNT)
-                duck.move(ducks)
+                duck.move(ROUND)
                 if duck.DEATH and duck.SPAWN:
                     DUCK_COUNT -= 1
                     duck.SPAWN = False
@@ -130,6 +141,7 @@ def run():
                         for duck in ducks:
                             if duck.RECT.collidepoint(pygame.mouse.get_pos()):
                                 change_score = duck.death()
+                                if type(change_score) == type(1) and change_score > 0: modules.TEXT_SCORE(duck.X, duck.RECT.centery, change_score, FONT, SCORES)
                                 SCORE += change_score if type(change_score) == type(1) else 0
                         window.fill((0, 0, 0))
                         BULLETS -= 1
@@ -149,23 +161,26 @@ def run():
                 ducks_count.sort(reverse=True)
                 menu_regim = 1
 
-        round_count = FONT.render(f'R={ROUND}', False, (90, 180, 20))
-        window.blit(round_count, (55, 601))
-        x = 500-260
-        for i in ducks_count:
-            window.blit(data.ducks_count[i], (x, 645))
+        if menu_regim != 0:
+            round_count = FONT.render(f'R={ROUND}', False, (90, 180, 20))
+            window.blit(round_count, (55, 601))
+            x = 500-260
+            for i in ducks_count:
+                window.blit(data.ducks_count[i], (x, 645))
 
-            x+=26
-        x = 51
-        for i in range(BULLETS):
-            window.blit(data.bullet_img, (x, 635))
-            x+=24
-        window.blit(SHOT_TEXT, (55, 664))
-        SCORE_STR = ''
-        for i in range(6-len(str(SCORE))): SCORE_STR += '0'
-        SCORE_STR += str(SCORE)
-        SCORE_SURF = FONT_SCORE.render(SCORE_STR, False, (255, 255, 255))
-        window.blit(SCORE_SURF, (555, 630))
+                x+=26
+            x = 51
+            for i in range(BULLETS):
+                window.blit(data.bullet_img, (x, 635))
+                x+=24
+            window.blit(SHOT_TEXT, (55, 664))
+            SCORE_STR = ''
+            for i in range(6-len(str(SCORE))): SCORE_STR += '0'
+            SCORE_STR += str(SCORE)
+            SCORE_SURF = FONT_SCORE.render(SCORE_STR, False, (255, 255, 255))
+            window.blit(SCORE_SURF, (555, 630))
+            for scores in SCORES:
+                scores.draw(window)
 
         pygame.display.flip()
         clock.tick(FPS)
