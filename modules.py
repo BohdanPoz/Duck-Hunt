@@ -3,11 +3,6 @@ import data
 import time
 pygame.init()
 
-TOP_RECORD = 0
-
-with open('record.txt') as record:
-    TOP_RECORD = record.read()
-
 class Duck():
     def __init__(self, x, y, imgs, stepx, stepy, img_delay_max=30):
         self.X, self.Y = x, y
@@ -65,7 +60,7 @@ class Duck():
         else:
             self.dog_anim(window, spawn_duck, ducks, ducks_count, duck_count)
 
-    def move(self, ROUND):
+    def move(self, ROUND, texts, font):
         if not self.DEATH:
             if self.RECT.bottom < 350 and not self.DOG_ANIM:
                 self.FLY_UP = False
@@ -99,6 +94,7 @@ class Duck():
 
         if (self.RECT.bottom <= 0 or self.RECT.right <= 0 or self.RECT.left >= data.WINDOW['WIDTH']) and not self.DOG_ANIM:
             self.death('fly')
+            TEXT((data.WINDOW["WIDTH"]/2)-(data.frame.get_height()/2)-75, 100, "FLY AWAY", font, texts, time_draw=3, frame=True)
             self.DOG_ANIM = True
             self.Y = 500
 
@@ -152,20 +148,34 @@ class Duck():
             if self.IMG_DELAY > self.IMG_DELAY_MAX:
                 self.IMG_DELAY = 0
 
-class TEXT_SCORE:
-    def __init__(self, x, y, score, font, scores):
-        scores.append(self)
+class TEXT:
+    def __init__(self, x, y, text: str, font, texts, type="text", time_draw=1.5, frame=False):
+        texts.append(self)
         self.X, self.Y = x, y
 
-        self.SCORES = scores
-        self.TEXT_SCORE = font.render(str(score), False, (255, 255, 255))
+        self.TEXTS = texts
+        self.TIME_DRAW = time_draw
+        if type == 'text':
+            self.TEXT = [font.render(str(text), False, (255, 255, 255))]
+        elif type == 'round':
+            self.TEXT = [font.render(str(t), False, (255, 255, 255)) for t in text.split(' ')]
+        self.TYPE = type
+        self.FRAME = frame
         self.TIME = time.time()
 
     def draw(self, window):
-        if abs(time.time() - self.TIME) <= 1.5:
-            window.blit(self.TEXT_SCORE, (self.X, self.Y))
+        if abs(time.time() - self.TIME) <= self.TIME_DRAW:
+            x, y = None, None
+            if self.FRAME:
+                window.blit(data.frame, (self.X, self.Y))
+            if type == 'text' and not self.FRAME:
+                x, y = self.X, self.Y
+            else:
+                size_text = sum([t.get_height()+15 for t in self.TEXT])-15
+            
+            for i in range(len(self.TEXT)): window.blit(self.TEXT[i], (x, y) if not (x == None and y == None) else (self.X+data.frame.get_width()//2-self.TEXT[i].get_width()//2, self.Y+data.frame.get_height()//2-size_text//2))
         else:
-            self.SCORES
+            self.TEXTS.remove(self)
 
 class Menu:
     def __init__(self, window, color_background, img_title, color_buttons, font_button, size_fontb):
@@ -182,9 +192,7 @@ class Menu:
     
     def add_button(self, text, func=None):
         self.BUTTONS.append((self.FONT_BUTTON.render(text, False, self.COLOR_BUTTONS), self.FONT_BUTTON.render(text, False, self.COLOR_BACKGOUND, self.COLOR_BUTTONS), func))
-        with open('record.txt', 'w') as f:
-            f.write(str(self.BUTTONS))
-
+        
     def draw(self):
         self.WINDOW.fill(self.COLOR_BACKGOUND)
         self.WINDOW.blit(self.TITLE, (data.WINDOW['WIDTH']//2-self.TITLE.get_width()//2, 20))
@@ -198,10 +206,13 @@ class Menu:
                 self.WINDOW.blit(button[1], (data.WINDOW['WIDTH']//2-button[1].get_width()//2, y))
             y += button[1].get_height() + 10
 
+        top_record = self.FONT_BUTTON.render(f'Top record = {data.TOP_RECORD}', False, (90, 180, 20))
+        self.WINDOW.blit(top_record, (data.WINDOW['WIDTH']//2-top_record.get_width()//2, data.WINDOW['HEIGHT']-top_record.get_height()-20))
+
     def event_menu(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return True
+                return 'quit'
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_DOWN:
                     if self.CURENT_BUTTON != None:
@@ -222,4 +233,4 @@ class Menu:
 
                 if event.key == pygame.K_RETURN and self.CURENT_BUTTON != None:
                     if self.BUTTONS[self.CURENT_BUTTON][-1] != None:
-                        self.BUTTONS[self.CURENT_BUTTON][-1]()
+                        return self.BUTTONS[self.CURENT_BUTTON][-1]()

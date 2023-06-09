@@ -14,6 +14,10 @@ def load_imgs(folder: str, name: str, count_imgs: int, format_img='png') -> list
 
     return list
 
+with open('record.txt') as record:
+    TOP_RECORD = int(record.read())
+    TOP_RECORD_STR = record.read()
+
 path = os.path.abspath(__file__+'/..')
 img_path = path+'\\img\\'
 
@@ -26,3 +30,4 @@ duck_anim = load_imgs('duck', 'duck_anim', 8)
 ducks_count = [pygame.image.load(img_path+'duck\\white_duck.png'), pygame.image.load(img_path+'duck\\red_duck.png')]
 
 bullet_img = pygame.image.load(img_path+'bullet.png')
+frame = pygame.image.load(img_path+'frame.png')
